@@ -1,67 +1,174 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { useLeadContext } from "../contexts/leadContext";
 
-export default function Home(){
-    
-    //consume context
-    const { leadData, quickFilter, setQuickFilter, processedLead } = useLeadContext();
+/* ================= NAVBAR ================= */
 
-    //lead status function
-    const filterFunction = (status) =>{
-        const lengthOfStatus = (processedLead.filter(lead=>lead.status === status).length);
-        return lengthOfStatus;
-    }
-    
-    //quick filter
-    // const [quickfilter, setQuickFilter] = useState({
-    //     // 'New', 'Contacted', 'Qualified', 'Proposal Sent', 'Closed'
-    //     status: "",
-    // });
+function Navbar() {
+  return (
+    <nav className="navbar navbar-expand-lg navbar-light bg-light px-3">
+      <NavLink className="navbar-brand fw-bold" to="/">
+        Anvaya CRM
+      </NavLink>
 
-    // // filter function
-    // const filteredLead = leadData.filter((lead)=>{
-    //     if(quickfilter.status === "") return true;
-    //     return lead.status === quickfilter.status;
-    // });
+      <ul className="navbar-nav ms-auto gap-3">
+        <li className="nav-item">
+          <NavLink className="nav-link" to="/leadList">Leads</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink className="nav-link" to="/leadsByStatus">Status</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink className="nav-link" to="/SalesAgentView">Agents</NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink className="nav-link" to="/reports">Reports</NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
+}
 
-    return ( processedLead ? (
-            <div>
-                <h1>Anvaya CRM Dashboard</h1>
-                <div>
-                    <h2>Sidebar</h2>
-                    <ul>
-                        <li> <Link to={"/leadsByStatus"}>Leads "by status"</Link> </li>
-                        <li> <Link to={"/leadList"}>Sales "Lead list"</Link> </li>
-                        <li> <Link to={"/SalesAgentView"}>Agents "Sales Agent view"</Link> </li>
-                        <li> <Link to={"/reports"}>Reports</Link> </li>
-                        <li> <Link to={"/SalesManagement"}>Settings "Sales Agent Management"</Link> </li>
-                    </ul>
-                </div>
-                <div>
-                    <h2>Main Content : [Lead Management/:id]</h2>
-                    <ul>
-                        {processedLead.map((lead,index)=>(
-                            <li key={index} style={{textDecoration: "none"}}> <Link to={`/leadManagement/${lead._id}`}>{index+1} {lead.name}  </Link></li>
-                        ))}
-                    </ul>
-                    <h3>Lead Status:</h3>
-                    <ul>
-                        <li>New: {filterFunction("New")} Leads</li>
-                        <li>Contacted: {filterFunction("Contacted")}  Leads</li>
-                        <li>Qualified: {filterFunction("Qualified")} Leads</li>
-                        <li>Proposal Sent: {filterFunction("Proposal Sent")} Leads</li>
-                        <li>Closed: {filterFunction("Closed")} Leads</li>
-                    </ul>
-                    <h3>Quick Filters:</h3>
-                    <ul>
-                        {['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Closed'].map((status, index)=>(
-                            <button key={index} value={status} onClick={(e)=>setQuickFilter({...quickFilter,status})}>  {status} </button>
-                        ))}
-                        <button value={""} onClick={(e)=>setQuickFilter({...quickFilter, status: ""})}> All </button>
-                    </ul>
-                    <p> <Link to={"/newLead"}> Add New Lead Button </Link> </p>
-                </div>
-            </div>
-        ) : ( <div>Loading...</div> ) )
+/* ================= SIDEBAR ================= */
+
+function Sidebar() {
+  return (
+    <ul className="list-group">
+      <Link to="/leadsByStatus" className="list-group-item list-group-item-action">
+        Leads by Status
+      </Link>
+      <Link to="/leadList" className="list-group-item list-group-item-action">
+        Sales Lead List
+      </Link>
+      <Link to="/SalesAgentView" className="list-group-item list-group-item-action">
+        Sales Agent View
+      </Link>
+      <Link to="/reports" className="list-group-item list-group-item-action">
+        Reports
+      </Link>
+      <Link to="/SalesManagement" className="list-group-item list-group-item-action">
+        Sales Management
+      </Link>
+    </ul>
+  );
+}
+
+/* ================= LEAD LIST ================= */
+
+function LeadList({ leads }) {
+  return (
+    <ul className="list-group">
+      {leads.map((lead, index) => (
+        <Link
+          key={lead._id}
+          to={`/leadManagement/${lead._id}`}
+          className="list-group-item list-group-item-action"
+        >
+          {index + 1}. {lead.name}
+        </Link>
+      ))}
+    </ul>
+  );
+}
+
+/* ================= STATUS SUMMARY ================= */
+
+function LeadStatusSummary({ filterFunction }) {
+  const statuses = ["New", "Contacted", "Qualified", "Proposal Sent", "Closed"];
+
+  return (
+    <ul className="list-group">
+      {statuses.map((status) => (
+        <li key={status} className="list-group-item">
+          {status}: {filterFunction(status)} Leads
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ================= QUICK FILTERS ================= */
+
+function QuickFilters({ quickFilter, setQuickFilter }) {
+  const statuses = ["New", "Contacted", "Qualified", "Proposal Sent", "Closed"];
+
+  return (
+    <div className="d-flex gap-2 flex-wrap">
+      {statuses.map((status) => (
+        <button
+          key={status}
+          className="btn btn-warning"
+          onClick={() => setQuickFilter({ ...quickFilter, status })}
+        >
+          {status}
+        </button>
+      ))}
+
+      <button
+        className="btn btn-secondary"
+        onClick={() => setQuickFilter({ ...quickFilter, status: "" })}
+      >
+        All
+      </button>
+    </div>
+  );
+}
+
+/* ================= HOME ================= */
+
+export default function Home() {
+  const { leadData } = useLeadContext();
+
+  const [quickFilter, setQuickFilter] = useState({
+    status: "",
+    salesAgent: "",
+  });
+
+  if (!leadData) return <div>Loading...</div>;
+
+  const processedLead = leadData.filter((lead) => {
+    const matchStatus =
+      !quickFilter.status || lead.status === quickFilter.status;
+    const matchAgent =
+      !quickFilter.salesAgent ||
+      lead.salesAgent?.name === quickFilter.salesAgent;
+    return matchStatus && matchAgent;
+  });
+
+  const filterFunction = (status) =>
+    processedLead.filter((lead) => lead.status === status).length;
+
+  return (
+    <div className="container-fluid">
+
+      <Navbar />
+
+      <div className="row mt-3">
+        {/* Sidebar */}
+        <aside className="col-md-3">
+          <Sidebar />
+        </aside>
+
+        {/* Main Content */}
+        <main className="col-md-9">
+          <h2>Lead Management</h2>
+
+          <LeadList leads={processedLead} />
+
+          <h3 className="mt-4">Lead Status</h3>
+          <LeadStatusSummary filterFunction={filterFunction} />
+
+          <h3 className="mt-4">Quick Filters</h3>
+          <QuickFilters
+            quickFilter={quickFilter}
+            setQuickFilter={setQuickFilter}
+          />
+
+          <Link to="/newLead" className="btn btn-info mt-3">
+            Add New Lead
+          </Link>
+        </main>
+      </div>
+    </div>
+  );
 }

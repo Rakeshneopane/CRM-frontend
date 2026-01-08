@@ -3,31 +3,76 @@ import { useLeadContext } from "../contexts/leadContext";
 import { useFetch } from "../useFetch";
 import { Link } from "react-router-dom";
 
-export default function SalesAgentView() {
-  const { leadData } = useLeadContext();
+/* ================= SIDEBAR ================= */
 
-  const urlAgents = "http://localhost:3000/api/agents";
-  const { data: agentsRes, loading } = useFetch(urlAgents, {
-    allAgents: [],
-  });
+function Sidebar() {
+  return (
+    <aside>
+      <Link to="/">Back to Dashboard</Link>
+    </aside>
+  );
+}
 
-  if (loading) return <p>Loading agents...</p>;
+/* ================= AGENT FILTERS ================= */
+
+function AgentFilters({ status, setStatus }) {
+  const statuses = [
+    "New",
+    "Contacted",
+    "Qualified",
+    "Proposal Sent",
+    "Closed",
+  ];
 
   return (
     <div>
-      <h1>Leads by Sales Agent</h1>
-      <Link to="/">Back to Dashboard</Link>
-
-      {agentsRes.allAgents.map((agent) => (
-        <AgentSection
-          key={agent._id}
-          agentName={agent.name}
-          leadData={leadData}
-        />
+      <strong>Filter by Status:</strong>{" "}
+      {statuses.map((s) => (
+        <button key={s} onClick={() => setStatus(s)}>
+          {s}
+        </button>
       ))}
+      <button onClick={() => setStatus("")}>All</button>
     </div>
   );
 }
+
+/* ================= SORT CONTROLS ================= */
+
+function AgentSortControls({ setSortType }) {
+  return (
+    <div>
+      <strong>Sort by:</strong>{" "}
+      <button onClick={() => setSortType("priority")}>
+        Priority
+      </button>
+      <button onClick={() => setSortType("timeToClose")}>
+        Time to Close
+      </button>
+      <button onClick={() => setSortType("")}>Clear</button>
+    </div>
+  );
+}
+
+/* ================= LEAD LIST ================= */
+
+function AgentLeadList({ leads }) {
+  if (leads.length === 0) {
+    return <p>No leads assigned</p>;
+  }
+
+  return (
+    <ul>
+      {leads.map((lead) => (
+        <li key={lead._id}>
+          {lead.name} — {lead.status} — {lead.priority}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ================= AGENT SECTION ================= */
 
 function AgentSection({ agentName, leadData }) {
   const [status, setStatus] = useState("");
@@ -58,49 +103,43 @@ function AgentSection({ agentName, leadData }) {
   }, [leadData, agentName, status, sortType]);
 
   return (
-    // <div
-    //   style={{
-    //     border: "1px solid #444",
-    //     margin: "1rem 0",
-    //     padding: "1rem",
-    //   }}
-    // >
-    <div>
+    <section>
       <h2>{agentName}</h2>
 
-      {/* Filters */}
-      <div>
-        {["New", "Contacted", "Qualified", "Proposal Sent", "Closed"].map(
-          (s) => (
-            <button key={s} onClick={() => setStatus(s)}>
-              {s}
-            </button>
-          )
-        )}
-        <button onClick={() => setStatus("")}>All</button>
-      </div>
+      <AgentFilters status={status} setStatus={setStatus} />
 
-      {/* Sorting */}
-      <div>
-        <button onClick={() => setSortType("priority")}>Priority</button>
-        <button onClick={() => setSortType("timeToClose")}>
-          Time to Close
-        </button>
-        <button onClick={() => setSortType("")}>Clear</button>
-      </div>
+      <AgentSortControls setSortType={setSortType} />
 
-      {/* Lead List */}
-      {agentLeads.length === 0 ? (
-        <p style={{ opacity: 0.7 }}>No leads assigned</p>
-      ) : (
-        <ul>
-          {agentLeads.map((lead) => (
-            <li key={lead._id}>
-              {lead.name} — {lead.status} — {lead.priority}
-            </li>
-          ))}
-        </ul>
-      )}
+      <AgentLeadList leads={agentLeads} />
+    </section>
+  );
+}
+
+/* ================= MAIN ================= */
+
+export default function SalesAgentView() {
+  const { leadData } = useLeadContext();
+
+  const urlAgents = "http://localhost:3000/api/agents";
+  const { data: agentsRes, loading } = useFetch(urlAgents, {
+    allAgents: [],
+  });
+
+  if (loading) return <p>Loading agents...</p>;
+
+  return (
+    <div>
+      <h1>Leads by Sales Agent</h1>
+
+      <Sidebar />
+
+      {agentsRes.allAgents.map((agent) => (
+        <AgentSection
+          key={agent._id}
+          agentName={agent.name}
+          leadData={leadData}
+        />
+      ))}
     </div>
   );
 }

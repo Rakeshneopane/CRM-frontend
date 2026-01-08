@@ -1,73 +1,111 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
-export default function NewSalesAgent(){
-    
-    const [formData, setFormData] = useState({
-            name: "",
-            email: "",
-        });
-    const [error, setError] = useState(false);
-    const [fetching, setFetching] = useState(false);
-    const [success, setSuccess] = useState(false);
+/* ================= FORM STATUS ================= */
 
-    const urlAgent = `http://localhost:3000/api/agents`;
-    const handleSubmit = async (e)=>{
-        e.preventDefault();
-        const payload = formData;
-        try {
-            setFetching(true);
-            const response = await fetch(urlAgent,{
-                method: "POST",
-                headers: {"COntent-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if(!response.ok) {
-                setError(true);
-                setFetching(false);
-                return;
-            }
-            const json = await response.json();
-            setFormData({
-                name: "",
-                email: "",
-            })
-            setFetching(false);
-            setSuccess(true);            
-        } catch (error) {
-            setError(true);
-            setFetching(false);
-        }
+function FormStatus({ error, success }) {
+  if (error) return <div>An error occurred.</div>;
+  if (success) return <div>Agent created successfully.</div>;
+  return null;
+}
+
+/* ================= AGENT FORM ================= */
+
+function AgentForm({ formData, setFormData, onSubmit, fetching }) {
+  return (
+    <form onSubmit={onSubmit}>
+      <div>
+        <label>Agent Name:</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) =>
+            setFormData({ ...formData, name: e.target.value })
+          }
+        />
+      </div>
+
+      <div>
+        <label>Email Address:</label>
+        <input
+          type="email"
+          value={formData.email}
+          onChange={(e) =>
+            setFormData({ ...formData, email: e.target.value })
+          }
+        />
+      </div>
+
+      <button disabled={fetching}>
+        {fetching ? "Creating Agent..." : "Create Agent"}
+      </button>
+    </form>
+  );
+}
+
+/* ================= MAIN ================= */
+
+export default function NewSalesAgent() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+  });
+
+  const [error, setError] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const urlAgent = "http://localhost:3000/api/agents";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setFetching(true);
+      setError(false);
+
+      const response = await fetch(urlAgent, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        setError(true);
+        setFetching(false);
+        return;
+      }
+
+      await response.json();
+
+      setFormData({ name: "", email: "" });
+      setSuccess(true);
+      setFetching(false);
+    } catch (err) {
+      setError(true);
+      setFetching(false);
     }
-    
-    useEffect(()=>{
-        let timer;
+  };
 
-        if(success){
-            timer = setTimeout(()=> {setSuccess(false);},3000);
-        }   
+  useEffect(() => {
+    let timer;
+    if (success) {
+      timer = setTimeout(() => setSuccess(false), 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [success]);
 
-        return ()=>clearTimeout(timer);
-    }, [success]);
-    
-    return (
-        <div>
-            <h1>Add New Sales Agent</h1>
-            <div>
-                <div>
-                    <form action="" onSubmit={(e)=>handleSubmit(e)}>
-                        <label htmlFor=""> Agent Name: </label>
-                        <input type="text" name="" id="" value={formData.name ?? ""} onChange={(e)=>setFormData({...formData, name: e.target.value})}/>
-                         <br />
-                        <label htmlFor=""> Email Address: </label>
-                        <input type="mail" name="" id="" value={formData.email} onChange={(e)=>setFormData({...formData, email: e.target.value})}/>
-                        <br />
-                        <button disabled={fetching}> {fetching ? `Creating Agent...` : `Create Agent Button`} </button>
-                    </form>
-                    {error && <div> An error occured </div> }
-                    {success && <div>Agent created sucessfully.</div> }
-                </div>
+  return (
+    <div>
+      <h1>Add New Sales Agent</h1>
 
-            </div>
-        </div>
-    )
+      <AgentForm
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        fetching={fetching}
+      />
+
+      <FormStatus error={error} success={success} />
+    </div>
+  );
 }

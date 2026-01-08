@@ -1,0 +1,21 @@
+/* body{
+    padding: 0;
+    margin: 0;
+}
+.container{
+    margin: 0;
+    padding: 2.5rem;
+    background-color: beige;
+    display: flex;
+}
+.side-bar{
+    flex-direction: row;
+    color: red;
+}
+ul{
+    list-style: none;
+    padding-inline-start: none;
+}
+.link-cards{
+    text-decoration: none;
+} */
